@@ -1,5 +1,5 @@
 
-# Group16-s-LabelStudio_Project
+# Group16-s-LabelStudio_Project Software & Environment
 This is final project of Software tool and Environment 
 
 <img src="https://user-images.githubusercontent.com/12534576/192582340-4c9e4401-1fe6-4dbb-95bb-fdbba5493f61.png"/>
