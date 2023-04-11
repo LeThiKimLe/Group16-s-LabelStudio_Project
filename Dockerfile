@@ -81,5 +81,5 @@ EXPOSE 8080
 
 USER 1001
 
-ENTRYPOINT ["./deploy/docker-entrypoint.sh"]
+ENTRYPOINT ["sh" , "./deploy/docker-entrypoint.sh"]
 CMD ["label-studio"]
