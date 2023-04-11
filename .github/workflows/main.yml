@@ -44,7 +44,7 @@ jobs:
           flags: 'g'
 
       - name: Generate Deployment Package
-        run: zip -r deploy.zip * -x "**node_modules**"
+        run: zip -r deploy.zip Dockerrun.aws.json
 
       - name: Deploy to EB
         uses: einaregilsson/beanstalk-deploy@v16
@@ -53,7 +53,7 @@ jobs:
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           application_name: LabelStudioDeploy
           environment_name: LabelStudioDeploy-env
-          version_label: "3.1"
+          version_label: "Version-${{ steps.format-time.outputs.replaced }}"
           region: ap-southeast-2
           deployment_package: deploy.zip
 
