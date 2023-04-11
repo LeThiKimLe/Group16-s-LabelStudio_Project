@@ -55,4 +55,5 @@ jobs:
           environment_name: LabelStudioDeploy-env
           version_label: "Version-${{ steps.format-time.outputs.replaced }}"
           region: ap-southeast-2
+          deployment_package: deploy.zip
 
