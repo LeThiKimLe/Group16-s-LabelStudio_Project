@@ -53,6 +53,6 @@ jobs:
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           application_name: LabelStudioDeploy
           environment_name: LabelStudioDeploy-env
-          version_label: "3.1"
+          version_label: "Version-${{ steps.format-time.outputs.replaced }}"
           region: ap-southeast-2
 
