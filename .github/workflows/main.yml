@@ -47,7 +47,7 @@ jobs:
           application_name: github_deploy
           environment_name: Githubdeploy-env
           version_label: "1.0"
-          region: up-southeast-2
+          region: ap-southeast-2
           deployment_package: Dockerrun.aws.json
           use_existing_version_if_available: true
           
