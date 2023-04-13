@@ -20,7 +20,7 @@ jobs:
      
       - name: Build and push
         run: |
-          docker build -t current_deploy .
+          DOCKER_BUILDKIT=1 docker build -t current_deploy .
           docker tag current_deploy:latest lethikimle/github_label_studio
           docker push lethikimle/github_label_studio
           
