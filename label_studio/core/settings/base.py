@@ -109,6 +109,7 @@ DEBUG_MODAL_EXCEPTIONS = get_bool_env('DEBUG_MODAL_EXCEPTIONS', True)
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 # Base path for media root and other uploaded files
 BASE_DATA_DIR = get_env('BASE_DATA_DIR', get_data_dir())
 os.makedirs(BASE_DATA_DIR, exist_ok=True)
@@ -496,8 +497,6 @@ IO_STORAGES_IMPORT_LINK_NAMES = [
     'io_storages_redisimportstoragelink',
 ]
 
-# Sửa ở đây
-SECURE_CONTENT_TYPE_NOSNIFF = True
 CREATE_ORGANIZATION = 'organizations.functions.create_organization'
 SAVE_USER = 'users.functions.save_user'
 USER_SERIALIZER = 'users.serializers.BaseUserSerializer'
@@ -554,8 +553,6 @@ import mimetypes
 
 mimetypes.add_type("application/javascript", ".js", True)
 mimetypes.add_type("image/png", ".png", True)
-# mimetypes.add_type("text/html", ".css", True)
-
 
 # fields name was used in DM api before
 REST_FLEX_FIELDS = {"FIELDS_PARAM": "include"}

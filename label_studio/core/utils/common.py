@@ -19,7 +19,7 @@ import traceback as tb
 import drf_yasg.openapi as openapi
 import contextlib
 
-from label_studio.core.utils.exceptions import LabelStudioXMLSyntaxErrorSentryIgnored
+from label_studio_tools.core.utils.exceptions import LabelStudioXMLSyntaxErrorSentryIgnored
 
 import label_studio
 import re

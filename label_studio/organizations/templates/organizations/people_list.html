@@ -19,7 +19,6 @@
 <div class="full_content">
   <header>
     <h1>{{ organization.title }}</h1>
-    <!-- <h1>Lê Thị Kim Lệ</h1> -->
   </header>
   {% verbatim %}
   <div id="users">
@@ -27,8 +26,10 @@
       Loading users...
     </div>
     <div v-if="users && !users.length">
-      No users found :
+      No users found :(
     </div>
+
+
     <table class="users" v-if="users && users.length">
       <colgroup>
         <col class="id"/>
@@ -98,6 +99,7 @@
   </div>
   <script>
     var app; // vue app
+
     (function() {
       console.log("Execute inline script");
 

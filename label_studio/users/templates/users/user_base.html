@@ -4,7 +4,7 @@
 {% load filters %}
 
 {% block head %}
-<link rel="stylesheet" type="text/css" href="{{ settings.HOSTNAME }}{% static 'css/login.css' %}"/>
+<link rel="stylesheet" href="{{ settings.HOSTNAME }}{% static 'css/login.css' %}"/>
 
 <script async src="https://www.googletagmanager.com/gtag/js?id=UA-129877673-1"></script>
 <script>
@@ -19,8 +19,7 @@ gtag('config', 'UA-129877673-1');
 <div class="login_page">
   <h1>Welcome to Label Studio Community Edition {{versions.package.short_version}}</h1>
   <h2>A full-fledged open source solution for data labeling</h2>
-  <h2>This is a remake product of Group 16</h2>
-  <h2>Environment & Tool for Developing Environment</h2>
+  <h2>A remark product of Group 16</h2>
 
   <img src="{{ settings.HOSTNAME }}{% static 'images/opossum_hanging.svg' %}" height="128px" />
 
