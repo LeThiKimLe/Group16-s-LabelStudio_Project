@@ -11,22 +11,18 @@ jobs:
       - name: Checkout Latest Repo
         uses: actions/checkout@master
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-
-      - name: Login to DockerHub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
+      - name: docker login
+        env:
+          DOCKER_USER: '${{ secrets.DOCKERHUB_USERNAME }}'
+          DOCKER_PASSWORD: '${{ secrets.DOCKERHUB_TOKEN }}'
+        run: |
+          docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+     
       - name: Build and push
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: Dockerfile
-          push: true
-          tags: lethikimle/group16-label-studio:latest
+        run: |
+          DOCKER_BUILDKIT=1 docker build -t current_deploy .
+          docker tag current_deploy:latest lethikimle/github_label_studio
+          docker push lethikimle/github_label_studio
           
       # .github/workflows/main.yml continued
       
@@ -43,18 +39,16 @@ jobs:
           replace-with: '-'
           flags: 'g'
 
-      - name: Generate Deployment Package
-        run: zip -r deploy.zip * -x "**node_modules**"
-
       - name: Deploy to EB
         uses: einaregilsson/beanstalk-deploy@v16
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          application_name: MyLabelStudio
-          environment_name: Mylabelstudio-env
-          version_label: "docker-app-${{ steps.format-time.outputs.replaced }}"
-          region: us-east-1
-          deployment_package: deploy.zip
+          application_name: github_deploy
+          environment_name: Githubdeploy-env
+          version_label: "Sample"
+          region: ap-southeast-2
+          deployment_package: Dockerrun.aws.json
+          use_existing_version_if_available: true
           
 
