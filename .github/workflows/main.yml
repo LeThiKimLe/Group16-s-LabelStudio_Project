@@ -10,6 +10,34 @@ jobs:
     steps:
       - name: Checkout Latest Repo
         uses: actions/checkout@master
+        
+      - name: docker login
+        env:
+          DOCKER_USER: '${{ secrets.DOCKERHUB_USERNAME }}'
+          DOCKER_PASSWORD: '${{ secrets.DOCKERHUB_TOKEN }}'
+        run: |
+          docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+     
+      - name: Build and push
+        run: |
+          DOCKER_BUILDKIT=1 docker build -t current_deploy .
+          docker tag current_deploy:latest lethikimle/github_label_studio
+          docker push lethikimle/github_label_studio
+          
+      # .github/workflows/main.yml continued
+      
+      - name: Get Timestamp
+        uses: gerred/actions/current-time@master
+        id: current-time
+
+      - name: Run String Replace
+        uses: frabert/replace-string-action@master
+        id: format-time
+        with:
+          pattern: '[:\.]+'
+          string: "${{ steps.current-time.outputs.time }}"
+          replace-with: '-'
+          flags: 'g'
 
       - name: Deploy to EB
         uses: einaregilsson/beanstalk-deploy@v16
