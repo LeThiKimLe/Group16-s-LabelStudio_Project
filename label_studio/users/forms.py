@@ -8,7 +8,10 @@ from django import forms
 from django.contrib import auth
 from django.conf import settings
 
+
 from users.models import User
+from organizations.models import Organization, PendingMember
+from current_instance.save_instance import CurrentInstance
 
 
 EMAIL_MAX_LENGTH = 256
@@ -60,13 +63,13 @@ class UserSignupForm(forms.Form):
                                error_messages={'required': PASS_LENGTH_ERR},
                                widget=forms.TextInput(attrs={'type': 'password'}))
     allow_newsletters = forms.BooleanField(required=False)
-
+    
     def clean_password(self):
         password = self.cleaned_data['password']
         if len(password) < PASS_MIN_LENGTH:
             raise forms.ValidationError(PASS_LENGTH_ERR)
         return password
-
+    
     def clean_username(self):
         username = self.cleaned_data.get('username')
         if username and User.objects.filter(username=username.lower()).exists():
@@ -80,7 +83,16 @@ class UserSignupForm(forms.Form):
 
         if email and User.objects.filter(email=email).exists():
             raise forms.ValidationError('User with this email already exists')
-
+        
+        # Xác thực xem email có nằm trong danh sách được mời hay không nếu tổ chức đã tồn tại
+        organ = CurrentInstance.get_current_organization()
+        if (organ != None):
+            if PendingMember.objects.filter(email=email, organization_id=organ.pk).exists():
+            # Nếu email có tồn tại trong bảng PendingMember
+                return email
+            else:
+                raise forms.ValidationError('User has not been invited to this organization')
+        # Nếu tổ chức chưa tồn tại, trả về mail, tạo tổ chức mới.
         return email
 
     def save(self):
@@ -90,6 +102,8 @@ class UserSignupForm(forms.Form):
         allow_newsletters = None
         if 'allow_newsletters' in cleaned:
             allow_newsletters = cleaned['allow_newsletters']
+        
+        # Chỗ này là nó cho tạo tài khoản luôn rồi nè, các bước xác thực quyền coi như tạm ổn, h tạo thôi, ko kiểm tra nữa
         user = User.objects.create_user(email, password, allow_newsletters=allow_newsletters)
         return user
 

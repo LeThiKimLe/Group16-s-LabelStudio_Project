@@ -5,16 +5,14 @@ import ujson as json
 from rest_framework import serializers
 from drf_dynamic_fields import DynamicFieldsMixin
 
-from organizations.models import Organization, OrganizationMember
+from organizations.models import Organization, OrganizationMember, PendingMember
 from users.serializers import UserSerializer
 from collections import OrderedDict
-
 
 class OrganizationIdSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     class Meta:
         model = Organization
         fields = ['id', 'title']
-
 
 class OrganizationSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     class Meta:
@@ -25,7 +23,7 @@ class OrganizationSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 class OrganizationMemberSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     class Meta:
         model = OrganizationMember
-        fields = ['id', 'organization', 'user']
+        fields = ['id', 'organization', 'user', 'role']
 
 
 class UserSerializerWithProjects(UserSerializer):
@@ -65,10 +63,17 @@ class OrganizationMemberUserSerializer(DynamicFieldsMixin, serializers.ModelSeri
         fields = ['id', 'organization', 'user']
 
 
+class OrganizationPendingUserSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    """Pending member list"""
+
+    class Meta:
+        model = PendingMember
+        fields = ['id', 'organization_id', 'email', 'role']
+
+
 class OrganizationInviteSerializer(serializers.Serializer):
     token = serializers.CharField(required=False)
     invite_url = serializers.CharField(required=False)
-
 
 class OrganizationsParamsSerializer(serializers.Serializer):
     active = serializers.BooleanField(required=False, default=False)

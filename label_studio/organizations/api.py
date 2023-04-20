@@ -9,7 +9,7 @@ from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
-
+from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from django.utils.decorators import method_decorator
@@ -17,10 +17,10 @@ from django.utils.decorators import method_decorator
 from label_studio.core.permissions import all_permissions, ViewClassPermission
 from label_studio.core.utils.params import bool_from_request
 
-from organizations.models import Organization
+from organizations.models import Organization, PendingMember, Role
 from organizations.serializers import (
     OrganizationSerializer, OrganizationIdSerializer, OrganizationMemberUserSerializer, OrganizationInviteSerializer,
-    OrganizationsParamsSerializer
+    OrganizationsParamsSerializer, OrganizationPendingUserSerializer
 )
 from core.feature_flags import flag_set
 
@@ -80,6 +80,7 @@ class OrganizationMemberPagination(PageNumberPagination):
                 description='A unique integer value identifying this organization.'),
         ],
     ))
+# TODO Sửa API chỗ này :v
 class OrganizationMemberListAPI(generics.ListAPIView):
 
     parser_classes = (JSONParser, FormParser, MultiPartParser)
@@ -89,6 +90,7 @@ class OrganizationMemberListAPI(generics.ListAPIView):
         PATCH=all_permissions.organizations_change,
         DELETE=all_permissions.organizations_change,
     )
+
     serializer_class = OrganizationMemberUserSerializer
     pagination_class = OrganizationMemberPagination
 
@@ -105,7 +107,7 @@ class OrganizationMemberListAPI(generics.ListAPIView):
             serializer.is_valid(raise_exception=True)
             active = serializer.validated_data.get('active')
             
-            # return only active users (exclude DISABLED and NOT_ACTIVATED)
+            # return only active users (exclude DISABLED and NOT_ACTIVATED), nhưng mà mặc định nó là active khi tạo user mà ta ???
             if active:
                 return org.active_members.order_by('user__username')
             
@@ -113,7 +115,7 @@ class OrganizationMemberListAPI(generics.ListAPIView):
             return org.members.order_by('user__username')
         else:
             return org.members.order_by('user__username')
-
+    
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
         tags=['Organizations'],
@@ -183,5 +185,34 @@ class OrganizationResetTokenAPI(APIView):
         logger.debug(f'New token for organization {org.pk} is {org.token}')
         invite_url = '{}?token={}'.format(reverse('user-signup'), org.token)
         serializer = OrganizationInviteSerializer(data={'invite_url': invite_url, 'token': org.token})
+        serializer.is_valid()
+        return Response(serializer.data, status=201)
+    
+
+# TODO Sửa API này để thêm người vào tổ chức + Định nghĩa API trong urls
+class OrganizationPendingUserAPI(APIView):
+    permission_required = all_permissions.organizations_invite
+    parser_classes = (JSONParser,)
+
+    def get(self, request, *args, **kwargs):
+        '''
+        List all the pending users for given requested user
+        '''
+        pending_member = PendingMember.objects.filter(organization_id=request.user.organization_id)
+        serializer = OrganizationPendingUserSerializer(pending_member, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def post(self, request, *args, **kwargs):
+        # Đọc dữ liệu
+        email = request.data.get('email')
+        role_id = request.data.get('role')
+        organization_id= request.data.get('organzation_id')
+        organization = Role.objects.get(id=organization_id)
+        role = Role.objects.get(id=role_id)
+        # Thêm dữ liệu
+        organization.add_pending_member(email, role)
+        # Trả về dữ liệu
+        pending_member = PendingMember.objects.filter(organization_id=organization_id)
+        serializer = OrganizationPendingUserSerializer(pending_member, many=True)
         serializer.is_valid()
         return Response(serializer.data, status=201)

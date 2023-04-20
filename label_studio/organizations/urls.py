@@ -19,6 +19,7 @@ _api_urlpattens = [
     path('', api.OrganizationListAPI.as_view(), name='organization-list'),
     # organization detail viewset
     path('<int:pk>', api.OrganizationAPI.as_view(), name='organization-detail'),
+   
     # organization memberships list viewset
     path('<int:pk>/memberships', api.OrganizationMemberListAPI.as_view(), name='organization-memberships-list'),
 ]
@@ -34,4 +35,9 @@ urlpatterns = [
     # invite
     path('api/invite', api.OrganizationInviteAPI.as_view(), name='organization-invite'),
     path('api/invite/reset-token', api.OrganizationResetTokenAPI.as_view(), name='organization-reset-token'),
+
+    # add collaborator
+    path('api/add-collaborate', api.OrganizationPendingUserAPI.as_view(), name='organization-add-collaborator'),
+
+
 ]

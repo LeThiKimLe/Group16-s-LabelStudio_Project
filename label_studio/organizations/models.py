@@ -6,11 +6,35 @@ from django.db import models, transaction
 from django.conf import settings
 from django.db.models import Q, Count
 
+from django.contrib.auth.models import Group
+
 from django.utils.translation import gettext_lazy as _
 
 from core.utils.common import create_hash, get_organization_from_request, load_func
 
 logger = logging.getLogger(__name__)
+
+
+
+# Bảng chứa các thành viên đã được mời nhưng chưa tạo tài khoản (xác thực)
+# Sau khi người dùng đã đăng ký tài khoản thì sẽ được xóa khỏi bảng này, và chuyển thành htx_user 
+class PendingMember(models.Model):
+
+    email = models.CharField(_('email'), max_length=1000, null=False)
+    role = models.ForeignKey(
+        Group, on_delete=models.CASCADE, related_name='belongs_to',
+        help_text='Role ID'
+    )
+
+    organization = models.ForeignKey(
+        'organizations.Organization', on_delete=models.CASCADE,
+        help_text='Organization ID'
+    )
+    
+    invited_at = models.DateTimeField(_('created at'), auto_now_add=True)
+
+    class Meta:
+        db_table = 'pending_member'
 
 
 class OrganizationMember(models.Model):
@@ -27,6 +51,11 @@ class OrganizationMember(models.Model):
     
     created_at = models.DateTimeField(_('created at'), auto_now_add=True)
     updated_at = models.DateTimeField(_('updated at'), auto_now=True)
+    
+    role = models.ForeignKey(
+        Role, on_delete=models.CASCADE, related_name='belongs',
+        help_text='Role ID'
+    )
 
     @classmethod
     def find_by_user(cls, user_or_user_pk, organization_pk):
@@ -45,6 +74,18 @@ class OrganizationMember(models.Model):
 
 OrganizationMixin = load_func(settings.ORGANIZATION_MIXIN)
 
+def create_system_role():
+    role1 = Role(name='Owner')
+    role1.save()
+
+    role2 = Role(name='Administrator')
+    role2.save()
+
+    role3 = Role(name='Manager')
+    role3.save()
+
+    role4 = Role(name='Annotator')
+    role4.save()
 
 class Organization(OrganizationMixin, models.Model):
     """
@@ -54,7 +95,7 @@ class Organization(OrganizationMixin, models.Model):
     token = models.CharField(_('token'), max_length=256, default=create_hash, unique=True, null=True, blank=True)
 
     users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name="organizations", through=OrganizationMember)
-        
+    
     created_by = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
                                       null=True, related_name="organization", verbose_name=_('created_by'))
 
@@ -69,6 +110,14 @@ class Organization(OrganizationMixin, models.Model):
         _create_organization = load_func(settings.CREATE_ORGANIZATION)
         return _create_organization(title=title, created_by=created_by)
     
+    def active_pending_member(self, emaill):
+        mem= PendingMember.objects.get(email=emaill, organization_id=self.pk)
+        mem.delete()
+
+    # Gọi khi thực hiện mời một người mới với một Role mới, add người vào bảng Pending Member
+    def add_pending_member(self, invited_email, invited_role):
+        new_memember = PendingMember.objects.create(email=invited_email, role=invited_role, organization_id=self.pk) 
+
     @classmethod
     def find_by_user(cls, user):
         memberships = OrganizationMember.objects.filter(user=user).prefetch_related('organization')
@@ -95,15 +144,15 @@ class Organization(OrganizationMixin, models.Model):
             return True
         return False
 
-    def add_user(self, user):
+    # TODO-Cần sửa chỗ này để phân quyền, à còn 1 vấn đề đối với người đầu tiên, là owner nữa
+    def add_user(self, user, role):
         if self.users.filter(pk=user.pk).exists():
             logger.debug('User already exists in organization.')
             return
 
         with transaction.atomic():
-            om = OrganizationMember(user=user, organization=self)
+            om = OrganizationMember(user=user, organization=self, role=role)
             om.save()
-
             return om    
     
     def reset_token(self):
@@ -141,3 +190,4 @@ class Organization(OrganizationMixin, models.Model):
 
     class Meta:
         db_table = 'organization'
+

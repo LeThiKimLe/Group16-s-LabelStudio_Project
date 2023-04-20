@@ -8,7 +8,7 @@ import { isDefined } from "../../../utils/helpers";
 import { useUpdateEffect } from "../../../utils/hooks";
 import './PeopleList.styl';
 import { CopyableTooltip } from '../../../components/CopyableTooltip/CopyableTooltip';
-
+// TODO Cần sửa chỗ giao diện này, tìm mối liên hệ vs backend, này là React.js
 export const PeopleList = ({ onSelect, selectedUser, defaultSelected }) => {
   const api = useAPI();
   const [usersList, setUsersList] = useState();
@@ -58,13 +58,13 @@ export const PeopleList = ({ onSelect, selectedUser, defaultSelected }) => {
     <>
       <Block name="people-list">
         <Elem name="wrapper">
-
           {usersList ? (
             <Elem name="users">
               <Elem name="header">
                 <Elem name="column" mix="avatar"/>
                 <Elem name="column" mix="email">Email</Elem>
                 <Elem name="column" mix="name">Name</Elem>
+                <Elem name="column" mix="role">Role</Elem>
                 <Elem name="column" mix="last-activity">Last Activity</Elem>
               </Elem>
               <Elem name="body">
@@ -83,6 +83,9 @@ export const PeopleList = ({ onSelect, selectedUser, defaultSelected }) => {
                       </Elem>
                       <Elem name="field" mix="name">
                         {user.first_name} {user.last_name}
+                      </Elem>
+                      <Elem name="field" mix="role">
+                        {user.role.name}
                       </Elem>
                       <Elem name="field" mix="last-activity">
                         {formatDistance(new Date(user.last_activity), new Date(), { addSuffix: true })}

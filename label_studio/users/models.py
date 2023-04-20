@@ -12,10 +12,11 @@ from django.dispatch import receiver
 from django.db.models.signals import post_save
 from rest_framework.authtoken.models import Token
 
-from organizations.models import OrganizationMember, Organization
+from organizations.models import OrganizationMember, Organization, Role
 from users.functions import hash_upload
 from core.utils.common import load_func
 from projects.models import Project
+from current_instance.save_instance import CurrentInstance
 
 YEAR_START = 1980
 YEAR_CHOICES = []
@@ -37,13 +38,13 @@ class UserManager(BaseUserManager):
 
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
-
+        # user.set_owner_status(True)
         user.set_password(password)
         user.save(using=self._db)
-
         return user
 
-    def create_user(self, email, password=None, **extra_fields):
+    # TODO Sửa hàm này, thêm phần lọc xem email này có được mời vô Organise chưa :> 
+    def create_user(self, email, password=None,role=None, **extra_fields):
         extra_fields.setdefault('is_staff', False)
         extra_fields.setdefault('is_superuser', False)
         return self._create_user(email, password, **extra_fields)
@@ -71,7 +72,6 @@ class UserLastActivityMixin(models.Model):
     class Meta:
         abstract = True
 
-
 UserMixin = load_func(settings.USER_MIXIN)
 
 
@@ -89,9 +89,11 @@ class User(UserMixin, AbstractBaseUser, PermissionsMixin, UserLastActivityMixin)
     last_name = models.CharField(_('last name'), max_length=256, blank=True)
     phone = models.CharField(_('phone'), max_length=256, blank=True)
     avatar = models.ImageField(upload_to=hash_upload, blank=True)
-
+    is_owner = models.BooleanField(_('owner_status'), default=False)
     is_staff = models.BooleanField(_('staff status'), default=False,
                                    help_text=_('Designates whether the user can log into this admin site.'))
+
+    organization = models.ManyToManyField(Organization, related_name="belongs_to_organizations", through=OrganizationMember)
 
     is_active = models.BooleanField(_('active'), default=True,
                                     help_text=_('Designates whether to treat this user as active. '
@@ -101,12 +103,12 @@ class User(UserMixin, AbstractBaseUser, PermissionsMixin, UserLastActivityMixin)
 
     activity_at = models.DateTimeField(_('last annotation activity'), auto_now=True)
 
-    active_organization = models.ForeignKey(
-        'organizations.Organization',
-        null=True,
-        on_delete=models.SET_NULL,
-        related_name='active_users'
-    )
+    # active_organization = models.ForeignKey(
+    #     'organizations.Organization',
+    #     null=True,
+    #     on_delete=models.SET_NULL,
+    #     related_name='active_users'
+    # )
 
     allow_newsletters = models.BooleanField(
         _('allow newsletters'),

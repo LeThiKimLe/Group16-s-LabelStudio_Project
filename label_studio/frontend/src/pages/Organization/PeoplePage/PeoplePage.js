@@ -13,24 +13,42 @@ import "./PeopleInvitation.styl";
 import { PeopleList } from "./PeopleList";
 import "./PeoplePage.styl";
 import { SelectedUser } from "./SelectedUser";
-
+// TODO Cần sửa chỗ này nữa, cũng thuộc giao diện, nút thêm People
 const InvitationModal = ({ link }) => {
-  return (
-    <Block name="invite">
+  // defined the array of data
+  listRole = [
+    { id: '2', Role: 'Administrator' },
+    { id: '3', Role: 'Manager' },
+    { id: '4', Role: 'Annotator' }
+    ];
+  // maps the appropriate column to fields property
+  fields = { text: 'Role', value: 'id' };
+
+    return (
+      <Block name="invite">
+        <Input
+          value={link}
+          style={{ width: '100%' }}
+          readOnly
+        />
+
       <Input
-        value={link}
+        label={"Email"}
+        value={text}
         style={{ width: '100%' }}
-        readOnly
       />
 
+      <ComboBoxComponent id="comboelement" fields={fields} dataSource={listRole} allowCustom={true} placeholder="Select a role" defaultSelected="Annotator" />;
+
       <Description style={{ width: '70%', marginTop: 16 }}>
-        Invite people to join your Label Studio instance. People that you invite have full access to all of your projects. <a href="https://labelstud.io/guide/signup.html">Learn more</a>.
+        Invite people to join your Label Studio instance. Enter email and Role for invited people. <a href="https://labelstud.io/guide/signup.html">Learn more</a>.
       </Description>
     </Block>
   );
 };
 
-export const PeoplePage = () => {
+export const PeoplePage = () => 
+{
   const api = useAPI();
   const inviteModal = useRef();
   const config = useConfig();
@@ -46,7 +64,6 @@ export const PeoplePage = () => {
 
   const setInviteLink = useCallback((link) => {
     const hostname = config.hostname || location.origin;
-
     setLink(`${hostname}${link}`);
   }, [config, setLink]);
 
@@ -55,6 +72,11 @@ export const PeoplePage = () => {
       setInviteLink(invite_url);
     });
   }, [setInviteLink]);
+
+  // TODO Gọi API thêm người vào chỗ này để lấy ds pending member sau khi thêm xong + Có thể add thêm nút hiện pending member để có cớ gọi API
+  const addPeopleLink = useCallback(() => {
+    api.callApi('addPeopleLink')
+  }, []);
 
   const inviteModalProps = useCallback((link) => ({
     title: "Invite people",
@@ -73,6 +95,11 @@ export const PeoplePage = () => {
 
       return (
         <Space spread>
+          <Space>
+            <Button style={{ width: 170 }} onClick={() => addPeopleLink()}>
+              Add People to Organization
+            </Button>
+          </Space>
           <Space>
             <Button style={{ width: 170 }} onClick={() => updateLink()}>
               Reset Link
@@ -112,10 +139,14 @@ export const PeoplePage = () => {
       <Elem name="controls">
         <Space spread>
           <Space></Space>
-
           <Space>
             <Button icon={<LsPlus/>} primary onClick={showInvitationModal}>
               Add People
+            </Button>
+          </Space>
+          <Space>
+            <Button icon={<LsPlus/>} primary onClick={showInvitationModal}>
+              Show Pending Member
             </Button>
           </Space>
         </Space>
@@ -133,6 +164,8 @@ export const PeoplePage = () => {
             onClose={() => selectUser(null)}
           />
         )}
+
+         
       </Elem>
     </Block>
   );
