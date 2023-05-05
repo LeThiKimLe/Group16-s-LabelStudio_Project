@@ -148,7 +148,6 @@ DATABASES_ALL = {
         },
     },
 }
-
 DATABASES_ALL['default'] = DATABASES_ALL[DJANGO_DB_POSTGRESQL]
 DATABASES = {'default': DATABASES_ALL.get(get_env('DJANGO_DB', 'default'))}
 
@@ -520,6 +519,7 @@ TASK_SERIALIZER_BULK = 'tasks.serializers.BaseTaskSerializerBulk'
 PREPROCESS_FIELD_NAME = 'data_manager.functions.preprocess_field_name'
 INTERACTIVE_DATA_SERIALIZER = 'data_export.serializers.BaseExportDataSerializerForInteractive'
 DELETE_TASKS_ANNOTATIONS_POSTPROCESS = None
+
 
 def project_delete(project):
     project.delete()

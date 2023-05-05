@@ -9,8 +9,10 @@ from django.shortcuts import redirect
 from django.contrib import auth
 from django.urls import reverse
 from django.core.files.images import get_image_dimensions
+from django.core.exceptions import PermissionDenied
 
-from organizations.models import Organization, PendingMember, Role
+from organizations.models import Organization, InvitedPeople
+from django.contrib.auth.models import Group
 from core.utils.contextlog import ContextLog
 from core.utils.common import load_func
 
@@ -48,58 +50,58 @@ def check_avatar(files):
 
     return avatar
 
-# TODO-Sửa chỗ này để phân quyền
-def save_user(request, next_page, user_form, tokenn=None):
+def save_user(request, next_page, user_form):
     """ Save user instance to DB
     """
-    # Chỗ này lưu user trước
     user = user_form.save()
-    role = Role.objects.get(name='Owner')
     user.username = user.email.split('@')[0]
-    # Lưu user vào htx_user (database)
-    user.save()
-    # H tới phần thêm vào tổ chức
-    if Organization.objects.exists():
-        org = Organization.objects.get(token=tokenn)
-        # Xác định xem email đã được add vào trong tổ chức chưa
-        if PendingMember.objects.filter(email=user.email, organization_id=org.pk).exists():
-            # Xóa khỏi pending member và lấy role
-            role= (PendingMember.objects.get(email=user.email, organization_id=org.pk))
-            org.active_pending_member(user.email)
+    token = request.GET.get('token')
+    role_id=1
 
+    # Đăng ký mà có mã token thì xác thực rồi mới add vô
+    if token:
+        if Organization.objects.exists():
+            org = Organization.objects.get(token=token)
+            if org:
+                member= InvitedPeople.objects.get(email=user.email, organization=org)
+                if member:
+                    role_id=member.role.id
+                    user.save()
+                    org.add_user(user)
+                else:
+                    raise PermissionDenied()
+
+            else:
+                raise PermissionDenied()
+            
+    # Đăng ký mà ko có mã token thì tạo mới luôn
     else:
-        # Đối với owner, tạo mới 1 tổ chức
-        org = Organization.create_organization(created_by=user, title='Label Studio')
-    # Thêm vào organise member
+        user.save()
+        org = Organization.create_organization(created_by=user, title='Label Studio of ' + user.username)
 
-    org.add_user(user, role)
-    # TODO Thuộc tính này chỉ khi một member thuộc 1 organization, fix sau
     user.active_organization = org
-    user.role = role
+    group = Group.objects.get(id=role_id)
+    user.role= group.name
     user.save(update_fields=['active_organization', 'role'])
 
     request.advanced_json = {
         'email': user.email, 'allow_newsletters': user.allow_newsletters,
         'update-notifications': 1, 'new-user': 1
     }
-
     redirect_url = next_page if next_page else reverse('projects:project-index')
     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
     return redirect(redirect_url)
 
-# Hàm này để lưu user khi đăng ký vào tổ chức, cũng cần sửa
-def proceed_registration(request, user_form, organization_form, next_page, token=None):
+def proceed_registration(request, user_form, organization_form, next_page):
     """ Register a new user for POST user_signup
     """
     # save user to db
     save_user = load_func(settings.SAVE_USER)
-    response = save_user(request, next_page, user_form, token)
+    response = save_user(request, next_page, user_form)
+
     return response
 
 
 def login(request, *args, **kwargs):
     request.session['last_login'] = time()
     return auth.login(request, *args, **kwargs)
-
-
-    

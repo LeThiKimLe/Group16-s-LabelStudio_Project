@@ -8,7 +8,8 @@ import { isDefined } from "../../../utils/helpers";
 import { useUpdateEffect } from "../../../utils/hooks";
 import './PeopleList.styl';
 import { CopyableTooltip } from '../../../components/CopyableTooltip/CopyableTooltip';
-// TODO Cần sửa chỗ giao diện này, tìm mối liên hệ vs backend, này là React.js
+//import { InvitedList } from "./InvitedList";
+
 export const PeopleList = ({ onSelect, selectedUser, defaultSelected }) => {
   const api = useAPI();
   const [usersList, setUsersList] = useState();
@@ -21,7 +22,7 @@ export const PeopleList = ({ onSelect, selectedUser, defaultSelected }) => {
   const fetchUsers = useCallback(async (page, pageSize) => {
     const response = await api.callApi('memberships', {
       params: {
-        pk: 1,
+        pk: window.APP_SETTINGS.user.active_organization,
         contributed_to_projects: 1,
         page,
         page_size: pageSize,
@@ -70,7 +71,6 @@ export const PeopleList = ({ onSelect, selectedUser, defaultSelected }) => {
               <Elem name="body">
                 {usersList.map(({ user }) => {
                   const active = user.id === selectedUser?.id;
-
                   return (
                     <Elem key={`user-${user.id}`} name="user" mod={{ active }} onClick={() => selectUser(user)}>
                       <Elem name="field" mix="avatar">
@@ -85,7 +85,7 @@ export const PeopleList = ({ onSelect, selectedUser, defaultSelected }) => {
                         {user.first_name} {user.last_name}
                       </Elem>
                       <Elem name="field" mix="role">
-                        {user.role.name}
+                        {user.role}
                       </Elem>
                       <Elem name="field" mix="last-activity">
                         {formatDistance(new Date(user.last_activity), new Date(), { addSuffix: true })}
@@ -101,6 +101,7 @@ export const PeopleList = ({ onSelect, selectedUser, defaultSelected }) => {
             </Elem>
           )}
         </Elem>
+
         <Pagination
           page={currentPage}
           urlParamName="page"

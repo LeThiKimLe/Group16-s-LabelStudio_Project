@@ -78,6 +78,12 @@
         "decorators": ""
     },
     {
+        "url": "/api/organizations/<int:pk>/invitedmembers",
+        "module": "organizations.api.OrganizationInvitedMemberListAPI",
+        "name": "organizations:api:organization-invited-member-list",
+        "decorators": ""
+    },
+    {
         "url": "/api/invite",
         "module": "organizations.api.OrganizationInviteAPI",
         "name": "organizations:organization-invite",

@@ -5,7 +5,6 @@ import logging
 from django.db import models, transaction
 from django.conf import settings
 from django.db.models import Q, Count
-
 from django.contrib.auth.models import Group
 
 from django.utils.translation import gettext_lazy as _
@@ -15,26 +14,27 @@ from core.utils.common import create_hash, get_organization_from_request, load_f
 logger = logging.getLogger(__name__)
 
 
-
-# Bảng chứa các thành viên đã được mời nhưng chưa tạo tài khoản (xác thực)
-# Sau khi người dùng đã đăng ký tài khoản thì sẽ được xóa khỏi bảng này, và chuyển thành htx_user 
-class PendingMember(models.Model):
+class InvitedPeople(models.Model):
 
     email = models.CharField(_('email'), max_length=1000, null=False)
+    
     role = models.ForeignKey(
-        Group, on_delete=models.CASCADE, related_name='belongs_to',
-        help_text='Role ID'
+        Group, on_delete=models.CASCADE, related_name='role',
+        help_text='Role'
     )
 
     organization = models.ForeignKey(
         'organizations.Organization', on_delete=models.CASCADE,
         help_text='Organization ID'
     )
-    
-    invited_at = models.DateTimeField(_('created at'), auto_now_add=True)
+
+    invited_at = models.DateTimeField(_('invited at'), auto_now_add=True)
+
+    def created_at_prettify(self):
+        return self.invited_at.strftime("%d %b %Y %H:%M:%S")
 
     class Meta:
-        db_table = 'pending_member'
+        db_table = 'invited_people'
 
 
 class OrganizationMember(models.Model):
@@ -48,14 +48,14 @@ class OrganizationMember(models.Model):
         'organizations.Organization', on_delete=models.CASCADE,
         help_text='Organization ID'
     )
+
+    role = models.ForeignKey(
+        Group, on_delete=models.CASCADE, related_name='member_role',
+        help_text='Role', to_field='id', default=4
+    )
     
     created_at = models.DateTimeField(_('created at'), auto_now_add=True)
     updated_at = models.DateTimeField(_('updated at'), auto_now=True)
-    
-    role = models.ForeignKey(
-        Role, on_delete=models.CASCADE, related_name='belongs',
-        help_text='Role ID'
-    )
 
     @classmethod
     def find_by_user(cls, user_or_user_pk, organization_pk):
@@ -74,18 +74,6 @@ class OrganizationMember(models.Model):
 
 OrganizationMixin = load_func(settings.ORGANIZATION_MIXIN)
 
-def create_system_role():
-    role1 = Role(name='Owner')
-    role1.save()
-
-    role2 = Role(name='Administrator')
-    role2.save()
-
-    role3 = Role(name='Manager')
-    role3.save()
-
-    role4 = Role(name='Annotator')
-    role4.save()
 
 class Organization(OrganizationMixin, models.Model):
     """
@@ -95,7 +83,8 @@ class Organization(OrganizationMixin, models.Model):
     token = models.CharField(_('token'), max_length=256, default=create_hash, unique=True, null=True, blank=True)
 
     users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name="organizations", through=OrganizationMember)
-    
+
+        
     created_by = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
                                       null=True, related_name="organization", verbose_name=_('created_by'))
 
@@ -110,14 +99,6 @@ class Organization(OrganizationMixin, models.Model):
         _create_organization = load_func(settings.CREATE_ORGANIZATION)
         return _create_organization(title=title, created_by=created_by)
     
-    def active_pending_member(self, emaill):
-        mem= PendingMember.objects.get(email=emaill, organization_id=self.pk)
-        mem.delete()
-
-    # Gọi khi thực hiện mời một người mới với một Role mới, add người vào bảng Pending Member
-    def add_pending_member(self, invited_email, invited_role):
-        new_memember = PendingMember.objects.create(email=invited_email, role=invited_role, organization_id=self.pk) 
-
     @classmethod
     def find_by_user(cls, user):
         memberships = OrganizationMember.objects.filter(user=user).prefetch_related('organization')
@@ -144,15 +125,22 @@ class Organization(OrganizationMixin, models.Model):
             return True
         return False
 
-    # TODO-Cần sửa chỗ này để phân quyền, à còn 1 vấn đề đối với người đầu tiên, là owner nữa
-    def add_user(self, user, role):
+# TODO: Thêm role chỗ này
+    def add_user(self, user):
         if self.users.filter(pk=user.pk).exists():
             logger.debug('User already exists in organization.')
             return
-
+        member= InvitedPeople.objects.get(email=user.email)
         with transaction.atomic():
-            om = OrganizationMember(user=user, organization=self, role=role)
+            # Thêm vào tổ chức
+            om = OrganizationMember(user=user, organization=self, role=member.role)
             om.save()
+            # Xóa khỏi danh sách người được mời
+            member.delete()
+            # Thêm vào nhóm quyền
+            membergroup= Group.objects.get(id=member.role_id)
+            membergroup.user_set.add(user)
+            
             return om    
     
     def reset_token(self):
@@ -164,6 +152,11 @@ class Organization(OrganizationMixin, models.Model):
         """
         pass
 
+    def invitedToOrg(self, email, role):
+        member = InvitedPeople(email=email, role_id=role, organization=self)
+        member.save()
+        return member
+        
     def projects_sorted_by_created_at(self):
         return self.projects.all().order_by('-created_at').annotate(
             tasks_count=Count('tasks'),
@@ -175,7 +168,6 @@ class Organization(OrganizationMixin, models.Model):
 
     def per_project_invited_users(self):
         from users.models import User
-
         invited_ids = self.projects.values_list('members__user__pk', flat=True).distinct()
         per_project_invited_users = User.objects.filter(pk__in=invited_ids)
         return per_project_invited_users
@@ -188,6 +180,9 @@ class Organization(OrganizationMixin, models.Model):
     def members(self):
         return OrganizationMember.objects.filter(organization=self)
 
+    @property
+    def invited(self):
+        return InvitedPeople.objects.filter(organization=self)
+
     class Meta:
         db_table = 'organization'
-
