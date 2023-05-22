@@ -192,13 +192,16 @@ export const Menubar = ({
                   data-external
                   exact
                 />
+                
+                {config.user.role!="annotator" && (
                 <Menu.Item
                   label="Organization"
+                  // label={config.user.role}
                   to="/organization"
                   icon={<IconPersonInCircle/>}
                   data-external
                   exact
-                />
+                />)}
 
                 <Menu.Spacer/>
 
