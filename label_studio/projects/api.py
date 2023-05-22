@@ -25,7 +25,7 @@ from core.utils.common import temporary_disconnect_all_signals
 from core.mixins import GetParentObjectMixin
 from core.label_config import config_essential_data_has_changed
 from projects.models import (
-    Project, ProjectSummary, ProjectManager
+    Project, ProjectSummary, ProjectManager, ProjectMember
 )
 from projects.serializers import (
     ProjectSerializer, ProjectLabelConfigSerializer, ProjectSummarySerializer, GetFieldsSerializer
@@ -143,6 +143,12 @@ class ProjectListAPI(generics.ListCreateAPIView):
         filter = serializer.validated_data.get('filter')
         projects = Project.objects.filter(organization=self.request.user.active_organization).\
             order_by(F('pinned_at').desc(nulls_last=True), "-created_at")
+        if (self.request.user.role=="annotator"):
+            temp_list=[]
+            for project in projects:
+                if project.has_collaborator(self.request.user):
+                    temp_list.append(project.id)
+            projects=projects.filter(pk__in=temp_list)
         if filter in ['pinned_only', 'exclude_pinned']:
             projects = projects.filter(pinned_at__isnull=filter == 'exclude_pinned')
         return ProjectManager.with_counts_annotate(projects, fields=fields).prefetch_related('members', 'created_by')
