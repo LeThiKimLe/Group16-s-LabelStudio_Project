@@ -14,7 +14,7 @@ import { CreateProject } from '../CreateProject/CreateProject';
 import { DataManagerPage } from '../DataManager/DataManager';
 import { SettingsPage } from '../Settings';
 import './Projects.styl';
-import { EmptyProjectsList, ProjectsList } from './ProjectsList';
+import { EmptyProjectsList, ProjectsList} from './ProjectsList';
 
 
 const getCurrentPage = () => {
@@ -36,12 +36,15 @@ export const ProjectsPage = () => {
   const [modal, setModal] = React.useState(false);
   const openModal = setModal.bind(null, true);
   const closeModal = setModal.bind(null, false);
+  const config = useConfig();
+  const [role, setRole] = React.useState(config.user.role);
 
   const fetchProjects = async (page  = currentPage, pageSize = defaultPageSize) => {
     setNetworkState('loading');
     abortController.renew(); // Cancel any in flight requests
 
     const requestParams = { page, page_size: pageSize };
+    
 
     if (isFF(FF_DEV_2575)) {
       requestParams.include = [
@@ -111,8 +114,9 @@ export const ProjectsPage = () => {
               pageSize={defaultPageSize}
             />
           ) : (
-            <EmptyProjectsList openModal={openModal} />
-          )}
+            <EmptyProjectsList openModal={openModal} role={role} />
+          )
+          }
           {modal && <CreateProject onClose={closeModal} />}
         </Elem>
       </Oneof>
