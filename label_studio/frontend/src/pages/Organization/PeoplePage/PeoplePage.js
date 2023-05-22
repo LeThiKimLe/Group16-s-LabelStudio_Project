@@ -31,7 +31,7 @@ import { InvitedList } from "./InvitedList";
 
 
 const InvitationModal = ({ link }) => {
-// TODO: Chỗ này sửa nha, thêm cái form để add người vô, viết cái API lấy role có nhỏ cấp hơn cấp của user hiện tại, vs hoàn thiện cái API post add người
+
   const api = useAPI();
   const [invitedEmail, setEmail] = useState("")
   const [roleid, setRole] = useState("0")
