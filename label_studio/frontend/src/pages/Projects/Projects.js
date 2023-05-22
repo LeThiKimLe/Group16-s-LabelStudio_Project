@@ -139,10 +139,11 @@ ProjectsPage.routes = ({ store }) => [
     },
   },
 ];
+
 ProjectsPage.context = ({ openModal, showButton }) => {
   const config = useConfig();
   if (!showButton) return null;
   if (config.user.role!="manager" && config.user.role!="annotator")
-    return <Button onClick={openModal} look="primary" size="compact">Create Project</Button>;
+    return <Button onClick={openModal} look="primary" size="compact">Create Projects</Button>;
   return null;
 };
