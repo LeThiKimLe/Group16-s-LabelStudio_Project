@@ -203,9 +203,7 @@ export const Menubar = ({
                 />)}
 
                 <Menu.Spacer/>
-
                 <VersionNotifier showNewVersion/>
-
                 <Menu.Item
                   label="API"
                   href="/docs/api"

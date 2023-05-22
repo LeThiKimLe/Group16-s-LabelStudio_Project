@@ -41,6 +41,13 @@ label_studio/core/static_build
 label_studio/core/version_.py
 label_studio/core/core
 label_studio/tests/test_data/tasks_and_annotations.json
+label_studio/frontend/package-lock.json
+label_studio/frontend/package.json
+label_studio/frontend/yarn.lock
+label_studio/frontend/webpack.config.js
+
+
+
 
 archive
 
