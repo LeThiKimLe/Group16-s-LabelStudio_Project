@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useParams as useRouterParams } from 'react-router';
+import { useConfig } from '../../providers/ConfigProvider';
 import { Redirect } from 'react-router-dom';
 import { Button } from '../../components';
 import { Oneof } from '../../components/Oneof/Oneof';
@@ -14,6 +15,7 @@ import { DataManagerPage } from '../DataManager/DataManager';
 import { SettingsPage } from '../Settings';
 import './Projects.styl';
 import { EmptyProjectsList, ProjectsList } from './ProjectsList';
+
 
 const getCurrentPage = () => {
   const pageNumberFromURL = new URLSearchParams(location.search).get("page");
@@ -137,7 +139,11 @@ ProjectsPage.routes = ({ store }) => [
     },
   },
 ];
+
 ProjectsPage.context = ({ openModal, showButton }) => {
+  const config = useConfig();
   if (!showButton) return null;
-  return <Button onClick={openModal} look="primary" size="compact">Create</Button>;
+  if (config.user.role!="manager" && config.user.role!="annotator")
+    return <Button onClick={openModal} look="primary" size="compact">Create Projects</Button>;
+  return null;
 };
