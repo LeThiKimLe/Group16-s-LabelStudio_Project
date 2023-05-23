@@ -228,11 +228,8 @@ export const Menubar = ({
                   icon={<LsSlack/>}
                   target="_blank"
                 />
-                
                 <VersionNotifier showCurrentVersion/>
-
                 <Menu.Divider/>
-
                 <Menu.Item
                   icon={<IconPin/>}
                   className={sidebarClass.elem('pin')}
@@ -241,7 +238,6 @@ export const Menubar = ({
                 >
                   {sidebarPinned ?  "Unpin menu" : "Pin menu"}
                 </Menu.Item>
-
               </Menu>
             </Dropdown>
           )}
