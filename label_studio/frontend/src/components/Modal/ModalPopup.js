@@ -191,7 +191,6 @@ export class Modal extends React.Component {
       const Content = this.state.footer;
       return Content instanceof Function ? <Content/> : Content;
     }
-
     return null;
   }
 }

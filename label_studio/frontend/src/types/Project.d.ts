@@ -40,6 +40,7 @@ declare type APIProject = {
   /** Whether or not the project is in the middle of being created */
   is_draft?: boolean;
   created_by?: APIUserSimple;
+  assigned_to?:APIUserSimple;
 
   /** @format date-time */
   created_at?: string;

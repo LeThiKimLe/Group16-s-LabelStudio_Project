@@ -116,7 +116,7 @@ class ContextLog(object):
             new_response = {}
             self._assert_field_in_test('drafts', payload['response'], view_name)
             new_response['drafts'] = len(payload['response']['drafts']) if isinstance(payload['response']['drafts'], list) else payload['response']['drafts']
-            for key in ["id", "inner_id", "cancelled_annotations", "total_annotations", "total_predictions", "updated_by", "created_at", "updated_at", "overlap", "comment_count", "unresolved_comment_count", "last_comment_updated_at", "project", "comment_authors", "queue"]:
+            for key in ["id", "inner_id", "cancelled_annotations", "total_annotations", "total_predictions", "updated_by","assigned_to" ,"created_at", "updated_at", "overlap", "comment_count", "unresolved_comment_count", "last_comment_updated_at", "project", "comment_authors", "queue"]:
                 self._assert_field_in_test(key, payload['response'], view_name)
                 new_response[key] = payload['response'][key]
             payload['response'] = new_response
