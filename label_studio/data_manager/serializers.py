@@ -179,6 +179,7 @@ class DataManagerTaskSerializer(TaskSerializer):
     predictions_model_versions = serializers.SerializerMethodField(required=False)
     avg_lead_time = serializers.FloatField(required=False)
     updated_by = serializers.SerializerMethodField(required=False, read_only=True)
+    assigned_to = serializers.SerializerMethodField(required=False, read_only=True)
 
     CHAR_LIMITS = 500
 
@@ -243,6 +244,10 @@ class DataManagerTaskSerializer(TaskSerializer):
     @staticmethod
     def get_updated_by(obj):
         return [{"user_id": obj.updated_by_id}] if obj.updated_by_id else []
+    
+    @staticmethod
+    def get_assigned_to(obj):
+        return [obj.assigned_to.username] if obj.assigned_to_id else []
 
     @staticmethod
     def get_annotators(obj):

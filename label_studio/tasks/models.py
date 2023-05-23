@@ -61,6 +61,9 @@ class Task(TaskMixin, models.Model):
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='updated_tasks',
                                    on_delete=models.SET_NULL, null=True, verbose_name=_('updated by'),
                                    help_text='Last annotator or reviewer who updated this task')
+    assigned_to = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='tasks_assign',
+                                   on_delete=models.SET_NULL, null=True, verbose_name=_('assigned to'),
+                                   help_text='Last annotator or reviewer who updated this task')
     is_labeled = models.BooleanField(_('is_labeled'), default=False,
                                      help_text='True if the number of annotations for this task is greater than or equal '
                                                'to the number of maximum_completions for the project')
@@ -182,6 +185,11 @@ class Task(TaskMixin, models.Model):
     def has_permission(self, user):
         user.project = self.project  # link for activity log
         return self.project.has_permission(user)
+    
+    def assign_task(self, user):
+        if not self.project.has_collaborator(user):
+            self.project.add_collaborator(user)
+        self.assigned_to = user
 
     def clear_expired_locks(self):
         self.locks.filter(expire_at__lt=now()).delete()

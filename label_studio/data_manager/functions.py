@@ -283,6 +283,17 @@ def get_all_columns(project, *_):
                 'explore': False,
                 'labeling': False
             }
+        }, {
+            'id': 'assigned_to',
+            'title': 'Assignee',
+            'type': 'List',
+            'target': 'tasks',
+            'help': 'Annotator assigned by manager',
+            'schema': {'items': project.organization.members.values_list('user__id', flat=True)},
+            'visibility_defaults': {
+                'explore': False,
+                'labeling': False
+            }
         }
     ]
 

@@ -146,6 +146,7 @@ class TaskPagination(PageNumberPagination):
         )
 
 
+# TODO: Fix here
 class TaskListAPI(generics.ListCreateAPIView):
     task_serializer_class = DataManagerTaskSerializer
     permission_required = ViewClassPermission(
@@ -243,6 +244,7 @@ class TaskListAPI(generics.ListCreateAPIView):
         queryset = Task.prepared.annotate_queryset(
             queryset, fields_for_evaluation=fields_for_evaluation, all_fields=all_fields, request=request
         )
+        
         serializer = self.task_serializer_class(queryset, many=True, context=context)
         return Response(serializer.data)
 
@@ -314,7 +316,8 @@ class ProjectActionsAPI(APIView):
         project = generics.get_object_or_404(Project, pk=pk)
         self.check_object_permissions(request, project)
         return Response(get_all_actions(request.user, project))
-
+    
+# TODO: Fix phần này nha
     def post(self, request):
         pk = int_from_request(request.GET, "project", None)
         project = generics.get_object_or_404(Project, pk=pk)
@@ -329,8 +332,9 @@ class ProjectActionsAPI(APIView):
             return Response(response, status=422)
 
         # perform action and return the result dict
-        kwargs = {'request': request}  # pass advanced params to actions
+      
+        kwargs = {'request': request}
+        # pass advanced params to actions
         result = perform_action(action_id, project, queryset, request.user, **kwargs)
         code = result.pop('response_code', 200)
-
         return Response(result, status=code)
