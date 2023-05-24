@@ -185,7 +185,7 @@ actions = [
     },
     {
         'entry_point': delete_tasks,
-        'permission': all_permissions.tasks_delete,
+        'permission': 'tasks.delete_task',
         'title': 'Delete Tasks',
         'order': 100,
         'reload': True,
@@ -216,7 +216,7 @@ actions = [
     },
     {
         'entry_point': assign_task,
-        'permission': all_permissions.predictions_any,
+        'permission': 'tasks.delete_task',
         'title': 'Assign Task',
         'order': 103,
         'dialog': {

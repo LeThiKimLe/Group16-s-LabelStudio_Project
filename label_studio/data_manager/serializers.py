@@ -247,7 +247,7 @@ class DataManagerTaskSerializer(TaskSerializer):
     
     @staticmethod
     def get_assigned_to(obj):
-        return [obj.assigned_to.username] if obj.assigned_to_id else []
+        return obj.assigned_to.username if obj.assigned_to_id else ''
 
     @staticmethod
     def get_annotators(obj):

@@ -83,7 +83,7 @@ class TaskListAPI(DMTaskListAPI):
     def filter_queryset(self, queryset):
         queryset = super().filter_queryset(queryset)
         return queryset.filter(project__organization=self.request.user.active_organization)
-
+       
     def get_serializer_context(self):
         context = super().get_serializer_context()
         project_id = self.request.data.get('project')
