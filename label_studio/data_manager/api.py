@@ -236,7 +236,12 @@ class TaskListAPI(generics.ListCreateAPIView):
             if not review and project.evaluate_predictions_automatically:
                 tasks_for_predictions = Task.objects.filter(id__in=ids, predictions__isnull=True)
                 evaluate_predictions(tasks_for_predictions)
-            
+            temp=[]
+            if request.user.role=='annotator':
+                for task in page:
+                    if task.assigned_to==request.user:
+                        temp.append(task)
+                page=temp
             serializer = self.task_serializer_class(page, many=True, context=context)
             return self.get_paginated_response(serializer.data)
         # all tasks
@@ -245,10 +250,12 @@ class TaskListAPI(generics.ListCreateAPIView):
         queryset = Task.prepared.annotate_queryset(
             queryset, fields_for_evaluation=fields_for_evaluation, all_fields=all_fields, request=request
         )
+
+        if request.user.role=='annotator':
+            queryset= queryset.filter(assigned_to=request.user)
         
         serializer = self.task_serializer_class(queryset, many=True, context=context)
         return Response(serializer.data)
-
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
     tags=['Data Manager'],
