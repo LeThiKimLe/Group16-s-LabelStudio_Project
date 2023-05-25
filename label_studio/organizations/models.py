@@ -125,7 +125,6 @@ class Organization(OrganizationMixin, models.Model):
             return True
         return False
 
-# TODO: Thêm role chỗ này
     def add_user(self, user):
         if self.users.filter(pk=user.pk).exists():
             logger.debug('User already exists in organization.')

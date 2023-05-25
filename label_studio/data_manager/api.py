@@ -326,7 +326,6 @@ class ProjectActionsAPI(APIView):
         return Response(get_all_actions(request.user, project))
         
     
-# TODO: Fix phần này nha
     def post(self, request):
         pk = int_from_request(request.GET, "project", None)
         project = generics.get_object_or_404(Project, pk=pk)
