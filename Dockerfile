@@ -10,7 +10,7 @@ COPY --chown=1001:0 label_studio/frontend .
 COPY --chown=1001:0 label_studio/__init__.py /label-studio/label_studio/__init__.py
 
 RUN --mount=type=cache,target=$NPM_CACHE_LOCATION,uid=1001,gid=0 \
-    npm ci \
+    npm install \
  && npm run build:production
 
 FROM ubuntu:22.04
