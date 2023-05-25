@@ -9,6 +9,7 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from rest_framework import status, generics
 from rest_framework.exceptions import ValidationError
+from django.contrib.auth.decorators import user_passes_test
 from projects.models import Project
 
 from core.label_config import get_sample_task
@@ -25,9 +26,10 @@ def project_list(request):
 
 
 @login_required
+@user_passes_test(lambda u: u.has_perm('projects.add_project'))
 def project_settings(request, pk, sub_path):
     return render(request, 'projects/settings.html')
-
+    
 
 def playground_replacements(request, task_data):
     if request.GET.get('playground', '0') == '1':

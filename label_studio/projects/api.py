@@ -20,6 +20,7 @@ from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.views import exception_handler
 from django.http import Http404
+from django.core.exceptions import PermissionDenied
 
 from core.utils.common import temporary_disconnect_all_signals
 from core.mixins import GetParentObjectMixin
@@ -159,13 +160,15 @@ class ProjectListAPI(generics.ListCreateAPIView):
         return context
 
     def perform_create(self, ser):
-        try:
-            project = ser.save(organization=self.request.user.active_organization)
-        except IntegrityError as e:
-            if str(e) == 'UNIQUE constraint failed: project.title, project.created_by_id':
-                raise ProjectExistException('Project with the same name already exists: {}'.
-                                            format(ser.validated_data.get('title', '')))
-            raise LabelStudioDatabaseException('Database error during project creation. Try again.')
+        if (self.request.user.has_perm('projects.add_project')):
+            try:
+                project = ser.save(organization=self.request.user.active_organization)
+            except IntegrityError as e:
+                if str(e) == 'UNIQUE constraint failed: project.title, project.created_by_id':
+                    raise ProjectExistException('Project with the same name already exists: {}'.
+                                                format(ser.validated_data.get('title', '')))
+                raise LabelStudioDatabaseException('Database error during project creation. Try again.')
+        raise PermissionDenied()
 
     def get(self, request, *args, **kwargs):
         return super(ProjectListAPI, self).get(request, *args, **kwargs)

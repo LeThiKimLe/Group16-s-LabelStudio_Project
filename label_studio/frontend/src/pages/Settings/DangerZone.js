@@ -7,13 +7,14 @@ import { Space } from "../../components/Space/Space";
 import { Spinner } from "../../components/Spinner/Spinner";
 import { useAPI } from "../../providers/ApiProvider";
 import { useProject } from "../../providers/ProjectProvider";
+import { useConfig } from '../../providers/ConfigProvider';
 
 export const DangerZone = () => {
   const { project } = useProject();
   const api = useAPI();
   const history = useHistory();
   const [processing, setProcessing] = useState(null);
-
+  const config = useConfig();
   const handleOnClick = (type) => () => {
     confirm({
       title: "Action confirmation",
@@ -67,6 +68,7 @@ export const DangerZone = () => {
     label: 'Delete Project',
   }], [project]);
 
+  if (config.user.role!="annotator" || config.user.role!="annotator")
   return (
     <div style={{ width: 480 }}>
       <Label
@@ -95,6 +97,8 @@ export const DangerZone = () => {
       )}
     </div>
   );
+  else
+      return null;
 };
 
 DangerZone.title = "Danger Zone";

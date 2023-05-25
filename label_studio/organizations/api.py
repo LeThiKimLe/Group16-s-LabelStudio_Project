@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from django.contrib.auth.models import Group
+from django.core.exceptions import PermissionDenied
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -41,11 +42,11 @@ class OrganizationListAPI(generics.ListCreateAPIView):
     queryset = Organization.objects.all()
     parser_classes = (JSONParser, FormParser, MultiPartParser)
     permission_required = ViewClassPermission(
-        GET=all_permissions.organizations_view,
-        PUT=all_permissions.organizations_change,
-        POST=all_permissions.organizations_create,
-        PATCH=all_permissions.organizations_change,
-        DELETE=all_permissions.organizations_change,
+        GET='organizations.view_organization',
+        PUT='organizations.change_organization',
+        POST='organizations.add_organization',
+        PATCH='organizations.change_organization',
+        DELETE='organizations.change_organization',
     )
     serializer_class = OrganizationIdSerializer
 
@@ -53,7 +54,9 @@ class OrganizationListAPI(generics.ListCreateAPIView):
         return queryset.filter(users=self.request.user).distinct()
 
     def get(self, request, *args, **kwargs):
-        return super(OrganizationListAPI, self).get(request, *args, **kwargs)
+        if self.request.user.has_perm('organizations.view_organization'):
+            return super(OrganizationListAPI, self).get(request, *args, **kwargs)
+        raise PermissionDenied()
 
     @swagger_auto_schema(auto_schema=None)
     def post(self, request, *args, **kwargs):
@@ -102,20 +105,22 @@ class OrganizationMemberListAPI(generics.ListAPIView):
         }
 
     def get_queryset(self):
-        org = generics.get_object_or_404(self.request.user.organizations, pk=self.kwargs[self.lookup_field])
-        if flag_set('fix_backend_dev_3134_exclude_deactivated_users', self.request.user):
-            serializer = OrganizationsParamsSerializer(data=self.request.GET)
-            serializer.is_valid(raise_exception=True)
-            active = serializer.validated_data.get('active')
-            
-            # return only active users (exclude DISABLED and NOT_ACTIVATED)
-            if active:
-                return org.active_members.order_by('user__username')
-            
-            # organization page to show all members
-            return org.members.order_by('user__username')
-        else:
-            return org.members.order_by('user__username')
+        if self.request.user.has_perm('organizations.view_organization'):
+            org = generics.get_object_or_404(self.request.user.organizations, pk=self.kwargs[self.lookup_field])
+            if flag_set('fix_backend_dev_3134_exclude_deactivated_users', self.request.user):
+                serializer = OrganizationsParamsSerializer(data=self.request.GET)
+                serializer.is_valid(raise_exception=True)
+                active = serializer.validated_data.get('active')
+                
+                # return only active users (exclude DISABLED and NOT_ACTIVATED)
+                if active:
+                    return org.active_members.order_by('user__username')
+                
+                # organization page to show all members
+                return org.members.order_by('user__username')
+            else:
+                return org.members.order_by('user__username')
+        raise PermissionDenied()
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
@@ -301,7 +306,6 @@ class DetectRole(generics.ListAPIView):
             'request': self.request
         }
     def get_queryset(self):
-        # Chỗ này chắc là đọc organization của current user chăng 
         user= self.request.user
         if user:
             role= user.role

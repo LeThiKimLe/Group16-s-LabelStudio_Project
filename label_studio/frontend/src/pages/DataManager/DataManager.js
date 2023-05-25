@@ -16,6 +16,7 @@ import { ImportModal } from '../CreateProject/Import/ImportModal';
 import { ExportPage } from '../ExportPage/ExportPage';
 import { APIConfig } from './api-config';
 import "./DataManager.styl";
+import { useConfig } from '../../providers/ConfigProvider';
 
 const initializeDataManager = async (root, props, params) => {
   if (!window.LabelStudio) throw Error("Label Studio Frontend doesn't exist on the page");
@@ -194,6 +195,8 @@ DataManagerPage.context = ({ dmRef }) => {
     '/settings': 'Settings',
   };
 
+
+
   const updateCrumbs = (currentMode) => {
     const isExplorer = currentMode === 'explorer';
     const dmPath = location.pathname.replace(DataManagerPage.path, '');
@@ -233,6 +236,8 @@ DataManagerPage.context = ({ dmRef }) => {
     showLabelingInstruction(currentMode);
   };
 
+  const config = useConfig();
+
   useEffect(() => {
     if (dmRef) {
       dmRef.on('modeChanged', onDMModeChanged);
@@ -255,8 +260,9 @@ DataManagerPage.context = ({ dmRef }) => {
           Instructions
         </Button>
       )}
-
-      {Object.entries(links).map(([path, label]) => (
+      
+      {(config.user.role!="annotator" && config.user.role!="manager") &&
+       (Object.entries(links).map(([path, label]) => (
         <Button
           key={path}
           tag={NavLink}
@@ -266,7 +272,7 @@ DataManagerPage.context = ({ dmRef }) => {
         >
           {label}
         </Button>
-      ))}
+      )))}
     </Space>
   ) : null;
 };
