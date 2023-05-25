@@ -186,7 +186,7 @@ export const Menubar = ({
             >
               <Menu>
                 <Menu.Item
-                  label="Projects"
+                  label="Org Projects"
                   to="/projects"
                   icon={<IconFolder/>}
                   data-external
@@ -242,6 +242,7 @@ export const Menubar = ({
               </Menu>
             </Dropdown>
           )}
+
 
           <MenubarContext.Provider value={providerValue}>
             <div className={contentClass.elem('content').mod({withSidebar: sidebarPinned && sidebarOpened})}>
