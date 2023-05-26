@@ -23,5 +23,8 @@ Label Studio is an open source data labeling tool. It lets you label data types 
 - Nguyễn Thị Cẩm Nguyên
 
 ## New Functions compared to origin version
-- Add more people to organization with different role: Administrator / Manager / Annotator
+- Add more people to organization with different role: Administrator / Manager / Annotator with specified right
 - People who were invited can sign up account via invite link provide by organization owner
+- Create your own organization when sign up new account
+- User with Role Owner/ADministrator/Manager can assign tasks for specified annotators
+- Annotator View (Annotators can only view projects whose tasks are assigned to them)
