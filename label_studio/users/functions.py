@@ -100,7 +100,6 @@ def proceed_registration(request, user_form, organization_form, next_page):
     # save user to db
     save_user = load_func(settings.SAVE_USER)
     response = save_user(request, next_page, user_form)
-
     return response
 
 

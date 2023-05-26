@@ -120,7 +120,8 @@ class OrganizationMemberListAPI(generics.ListAPIView):
                 return org.members.order_by('user__username')
             else:
                 return org.members.order_by('user__username')
-        raise PermissionDenied()
+        else:
+            raise PermissionDenied()
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
