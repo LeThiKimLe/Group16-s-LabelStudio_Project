@@ -2,14 +2,14 @@ name: Dev deployment from Github to AWS
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Latest Repo
-        uses: actions/checkout@master
+        uses: actions/checkout@main
         
       - name: docker login
         env:
@@ -21,8 +21,8 @@ jobs:
       - name: Build and push
         run: |
           DOCKER_BUILDKIT=1 docker build -t current_deploy .
-          docker tag current_deploy:latest lethikimle/github_label_studio
-          docker push lethikimle/github_label_studio
+          docker tag current_deploy:latest lethikimle/label-studio
+          docker push lethikimle/label-studio
           
       # .github/workflows/main.yml continued
       
@@ -44,11 +44,9 @@ jobs:
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          application_name: Deploy2
-          environment_name: Deploy2-env
-          version_label: "Sample-5"
-          region: ap-southeast-2
+          application_name: Label_Studio_Deploy
+          environment_name: LabelStudioDeploy-env
+          version_label: "Label_Studio_Deploy-version-1"
+          region: us-east-1
           deployment_package: Dockerrun.aws.json
           use_existing_version_if_available: true
-          
-
