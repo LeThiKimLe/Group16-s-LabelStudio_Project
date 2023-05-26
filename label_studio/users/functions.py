@@ -63,12 +63,12 @@ def save_user(request, next_page, user_form):
         if Organization.objects.exists():
             org = Organization.objects.get(token=token)
             if org:
-                member= InvitedPeople.objects.filter(email=user.email, organization=org)
-                if member:
+                try:
+                    member=InvitedPeople.objects.get(email=user.email, organization=org)
                     role_id=member.role.id
                     user.save()
                     org.add_user(user)
-                else:
+                except:
                     user.delete()
                     raise PermissionDenied()
 

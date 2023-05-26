@@ -168,7 +168,8 @@ class ProjectListAPI(generics.ListCreateAPIView):
                     raise ProjectExistException('Project with the same name already exists: {}'.
                                                 format(ser.validated_data.get('title', '')))
                 raise LabelStudioDatabaseException('Database error during project creation. Try again.')
-        raise PermissionDenied()
+        else:
+            raise PermissionDenied()
 
     def get(self, request, *args, **kwargs):
         return super(ProjectListAPI, self).get(request, *args, **kwargs)
